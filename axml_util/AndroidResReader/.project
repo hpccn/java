@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>ARSCReader</name>
+	<name>AndroidResReader</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -15,10 +15,5 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
 	<linkedResources>
-		<link>
-			<name>src-svn</name>
-			<type>2</type>
-			<location>E:/Java/Android4ME.SVN/src</location>
-		</link>
 	</linkedResources>
 </projectDescription>
