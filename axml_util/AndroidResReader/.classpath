@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry including="android/content/res/|android/os/|android4me/|org/xmlpull/" kind="src" path="src-svn"/>
+	<classpathentry including="android/content/res/|android/os/|android4me/|org/xmlpull/" kind="src" path="src-git"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
