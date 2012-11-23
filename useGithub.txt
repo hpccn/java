@@ -1,0 +1,24 @@
+1.首先你需要在https://github.com/ 上注册一个账户
+2.注册成功以后，你需要新建一个repository（储藏室），这个用来存放你要上传的项目
+create a new repo ， 填写 Repository name，之后Create repository
+
+3 获取到一个 URL：
+https://github.com/hpccn/ecg.git
+或：git@github.com:hpccn/ecg.git
+
+
+Create a new repository on the command line
+
+touch README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin git@github.com:hpccn/ecg.git
+git push -u origin master
+
+
+Push an existing repository from the command line
+
+git remote add origin git@github.com:hpccn/ecg.git
+git push -u origin master
+
