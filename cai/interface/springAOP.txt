@@ -1,0 +1,169 @@
+
+
+Spring 2.5.6学习笔记 之 AOP
+
+此文很多是个人理解，写的也不完善，若有不正确之处请指正！！！
+
+一、Spring AOP 代理原理
+
+Spring AOP 是使用代理来完成的，Spring 会使用下面两种方式的其中一种来创建代理：
+    a)JDK动态代理：使用接口于实现分离，面向接口编程是spring推荐的方式。
+    b)CGLIB代理：  主要适用于改造遗留系统，这些系统一般不会继承特定的接口。
+
+二、AOP 概念
+Joinpoint（连接点）：它定义在哪里加入你的逻辑功能，对于Spring AOP，Jointpoint指的就是Method，因为spring只支持方法类型的连接点，在传统的AOP编程中Joinpoint还可以是Field字段或构造器。
+
+Advice（通知）：特定的Jointpoint处运行的代码即拦截后要做的事情，对于Spring AOP 来讲，有Before advice、AfterreturningAdvice、ThrowAdvice、Afterdevice、AroundAdvice(MethodInteceptor)等通知。
+
+Pointcut（切入点）：指我们要对那些joinpoint进行拦截的定义，就是说一个Advice可能在多个地方织入，
+
+Aspect（切面）：指横切性关注点的抽象，代理对象实现的过程。
+
+Weave（织入）：将Aspect加入到target（目标对象）程序代码的过程，并导致proxy对象创建的过程，对于Spring AOP，由ProxyFactory或者ProxyFactoryBean负责织入动作。
+
+Target（目标对象）：是需要Aspect功能的对象，代理的目标对象。
+
+Introduction（引入）：再不修改类代码的前提下，引入可以在运行期为类动态地添加一些方法或属性，一般是一个实例一个引用对象。当然如果不引入属性或者引入的属性做了线程安全性处理或者只读属性，则一个Class一个引用也是可以的（自己理解）。
+
+三、AOP 种类
+1、静态织入：指在编译时期就织入Aspect代码，AspectJ好像是这样做的。
+
+2、动态织入：在运行时期织入，Spring AOP属于动态织入，动态织入又分静动两种，静则指织入过程只在第一次调用时执行；动则指根据代码动态运行的中间状态来决定如何操作，每次调用Target的时候都执行（性能较差）。
+
+四、Spring AOP 通知类型
+1、BeforeAdvice（前置通知）：前置通知需实现MethodBeforeAdvice，但是该接口的Parent是BeforeAdvice，致于什么用处我想可能是扩展性需求的设计吧。或者Spring未来也并不局限于Method的JoinPoint（胡乱猜测）。BeforeAdvice可以修改目标的参数，也可以通过抛出异常来阻止目标运行。
+
+2、AfterreturningAdvice（后置通知）：实现AfterreturningAdvice，我们无法修改方法的返回值，但是可以通过抛出异常阻止方法运行。
+
+3、AroundAdvice（环绕通知）：Spring 通过实现MethodInterceptor(aopalliance)来实现包围通知，最大特点是可以修改返回值，当然它在方法前后都加入了自己的逻辑代码，因此功能异常强大。通过MethodInvocation.proceed()来调用目标方法（甚至可以不调用）。 非常适合权限的控制。
+
+4、ThrowsAdvice（例外通知）：通过实现若干afterThrowing()来实现。
+
+5、After（最终通知）： 无论method是否执行，都会运行的通知。
+
+  他们的大概位置：
+
+     AroundAdvice（）
+
+     BeforeAdvice（）
+
+    try{
+
+       AfterRetuningAdvice（）
+
+    }catch{
+
+   AfterThrowing（）
+
+}finally{
+
+  After（）
+
+}
+
+五、Spring AOP Pointcut
+以上只是Advice，如果不指定切入点，Spring 则使用所有可能的Jointpoint进行织入（当然如果你在Advice中进行方法检查除外）。因此切入点在AOP中扮演一个十分重要的角色。Spring 2.5 推荐使用AspectJ的Annocation的切入点表达式来定义切入点。
+
+1、Pointcut：它是Spring AOP Pointcut的核心，定义了getClassFilter()和getMethodMatcher()两个方法。
+
+2、ClassFilter：定义了matches(Class cls)一个方法。
+
+3、MethodMatcher() 定义了matches(Method，Class)，isRuntime()，matches(Mathod，Class，Object[])三个方法，如果isRuntime()返回true则表示为动态代理（实际是动态代理的动态代理），则调用第三个方法（每访问一次调用一次），否则调用第一个方法（并且只调用一次）
+
+六、实例
+
+   先写两个简单的类：
+
+package com.longthsoft.learn.spring.models;
+
+public class A {
+    public void sayHello() {
+        System.out.println("Hello, I'm a");
+    }
+}
+
+package com.longthsoft.learn.spring.models;
+
+public class B {
+    public void sayHi() {
+        System.out.println("Hi, I'm b");
+    }
+}
+
+接下来把他们交给Spring吧
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+   
+    <bean id="a" class="com.longthsoft.learn.spring.models.A" />
+    <bean id="b" class="com.longthsoft.learn.spring.models.B" />
+</beans>
+
+package com.longthsoft.learn.spring;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.longthsoft.learn.spring.models.A;
+import com.longthsoft.learn.spring.models.B;
+
+public final class Boot {
+
+    public static void main(String[] args) {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
+        A a = (A) ctx.getBean("a");
+        a.sayHello();
+       
+        B b = (B) ctx.getBean("b");
+        b.sayHi();
+    }
+
+}
+
+package com.longthsoft.learn.spring;
+
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+
+@Aspect
+public class SimpleAspect {
+
+    @Pointcut("execution(* com.longthsoft.learn.spring.models.*.say*())")
+    public void simplePointcut() { }
+   
+    @AfterReturning(pointcut="simplePointcut()")
+    public void simpleAdvice() {
+        System.out.println("Spring AOP");
+    }
+}
+
+ 
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+   
+    <aop:aspectj-autoproxy />
+   
+    <bean id="a" class="com.longthsoft.learn.spring.models.A" />
+    <bean id="b" class="com.longthsoft.learn.spring.models.B" />
+   
+    <bean id="simpleAspect" class="com.longthsoft.learn.spring.SimpleAspect" />
+</beans>
+
+OK， 运行一下：
+
+Hello, I'm a
+Spring AOP
+Hi, I'm b
+Spring AOP

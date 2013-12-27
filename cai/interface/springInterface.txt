@@ -1,0 +1,114 @@
+
+
+体验spring面向接口编程
+
+一 容器: 你可以理解为可以装东西的容器,在java世界里,万物皆对象,因此容器也是一个对象.
+
+但是这个对象比较特别，它不仅要容纳其他对象，还要维护各个对象之间的关系。
+
+
+二、     几个核心概念
+在我看来Spring的核心就是两个概念，反向控制（IoC），面向切面编程（AOP）。还有一个相关的概念是POJO，我也会略带介绍。
+1、POJO
+我所看到过的POJO全称有两个，Plain Ordinary Java Object，Plain Old Java Object，两个差不多，意思都是普通的Java类，所以也不用去管谁对谁错。POJO可以看做是简单的JavaBean（具有一系列Getter，Setter方法的类）。严格区分这里面的概念没有太大意义，了解一下就行。
+2、     IoC
+IoC的全称是Inversion of Control，中文翻译反向控制或者逆向控制。这里的反向是相对EJB来讲的。EJB使用JNDI来查找需要的对象，是主动的，而Spring是把依赖的对象注入给相应的类（这里涉及到另外一个概念“依赖注入”，稍后解释），是被动的，所以称之为“反向”。先看一段代码，这里的区别就很容易理解了。
+3.面向接口编程来体验一下spring为我们带来的惊喜.
+
+这是个非常简单的例子:
+
+第一步:创建接口 Person.java
+
+package DemoSpring;
+
+/**
+* @author liuhb
+* @type   Person
+*/
+public interface Person {
+public void show();
+public void foot();
+}
+
+第二步: 创建2个接口的实现类(来体验一下用spring来面向接口编程)
+
+Girl.java
+
+package DemoSpring;
+/**
+* @author liuhb
+* @type   Girl
+*/
+public class Girl implements Person{
+public void foot() {
+   System.out.println("A foot girl... ");  
+}
+public void show() {
+   System.out.println("I am a girl! ");  
+}
+}
+
+Men.java
+
+package DemoSpring;
+/**
+* @author liuhb
+* @type   Men
+*/
+public class Men implements Person {
+private String name ="men";
+
+public void foot() {
+   System.out.println(name+"   drive   "+"plan");  
+}
+public void show() {
+   System.out.println(name+"show:i am a men!");  
+}
+}
+
+第三步:创建一个测试类Test.java
+
+package DemoSpring;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+/**
+* 依赖的是接口，通过get/set方法注入的是实例对象
+* @author liuhb
+* @type   Test
+*/
+public class Test {
+private Person p = null;
+
+public void setPpp(Person pdao){
+   this.p = pdao;
+}
+public Test(){
+  
+}
+public Test(Person p){//参数
+   this.p = p;
+}
+public void getPerson(){  
+   p.show();
+   p.foot();
+}
+public static void main(String [] args){  
+   ApplicationContext context = new ClassPathXmlApplicationContext("/DemoSpring/applicationContext.xml");
+   Test t = (Test)context.getBean("Test");
+   t.getPerson();  
+}
+}
+
+第四步:万事具备只欠东风spring 配置文件applicationContext.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans default-autowire="byName">
+    <bean id="Test" class="DemoSpring.Test">
+        <property name="person" ref="pdao"/>   
+    </bean>
+    <bean id="pdao" class="DemoSpring.Girl"></bean>
+</beans>
+ 
+
+来源:http://chuandao.blog.bokee.net
